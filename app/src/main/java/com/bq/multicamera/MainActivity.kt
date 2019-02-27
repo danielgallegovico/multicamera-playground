@@ -3,6 +3,7 @@ package com.bq.multicamera
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
@@ -12,7 +13,7 @@ import android.hardware.camera2.params.SessionConfiguration
 import android.os.AsyncTask
 import android.os.Bundle
 import android.view.Surface
-import android.view.SurfaceView
+import android.view.TextureView
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
@@ -36,16 +37,47 @@ class MainActivity : AppCompatActivity() {
     lateinit var surface1: Surface
     lateinit var surface2: Surface
 
+    val surfaceListener1: TextureView.SurfaceTextureListener = object : TextureView.SurfaceTextureListener {
+        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+            surface1 = Surface(surface)
+        }
+
+        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
+
+        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+            return false
+        }
+
+        override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
+
+    }
+
+    val surfaceListener2: TextureView.SurfaceTextureListener = object : TextureView.SurfaceTextureListener {
+        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+            surface2 = Surface(surface)
+        }
+
+        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
+
+        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+            return false
+        }
+
+        override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
+
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-        val surfaceView1 = findViewById<SurfaceView>(R.id.surface1)
-        surface1 = surfaceView1.holder.surface
-        val surfaceView2 = findViewById<SurfaceView>(R.id.surface2)
-        surface2 = surfaceView2.holder.surface
+        val textureView1 = findViewById<TextureView>(R.id.textureview1)
+        textureView1.surfaceTextureListener = surfaceListener1
+        val textureView2 = findViewById<TextureView>(R.id.textureview2)
+        textureView2.surfaceTextureListener = surfaceListener2
 
         val dualCamera = findShortLongCameraPair(cameraManager)
         val outputTargets = DualCameraOutputs(null, mutableListOf(surface1), mutableListOf(surface2))
@@ -64,12 +96,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.swap_camera_button).setOnClickListener {
-            if (surfaceView1.isVisible) {
-                surfaceView1.visibility = View.GONE
-                surfaceView2.visibility = View.VISIBLE
+            if (textureView1.isVisible) {
+                textureView1.visibility = View.GONE
+                textureView2.visibility = View.VISIBLE
             } else {
-                surfaceView1.visibility = View.VISIBLE
-                surfaceView2.visibility = View.GONE
+                textureView1.visibility = View.VISIBLE
+                textureView2.visibility = View.GONE
             }
         }
     }
